@@ -30,6 +30,8 @@ import numpy as np
 import os
 import yaml
 
+# import sys
+# sys.path.append("/home/chenjiahe/3_hsi/ASE/ase")
 from poselib.poselib.skeleton.skeleton3d import SkeletonMotion
 from poselib.poselib.core.rotation3d import *
 from isaacgym.torch_utils import *

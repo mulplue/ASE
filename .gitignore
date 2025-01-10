@@ -3,6 +3,9 @@
 .vs/
 runs/
 __pycache__/
-output/
 log/
 nn/
+
+output/
+wandb/
+results/

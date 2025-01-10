@@ -26,6 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import wandb
+
 import os
 
 from utils.config import set_np_formatting, set_seed, get_args, parse_sim_params, load_cfg
@@ -119,9 +121,10 @@ class RLGPUAlgoObserver(AlgoObserver):
     def after_print_stats(self, frame, epoch_num, total_time):
         if self.consecutive_successes.current_size > 0:
             mean_con_successes = self.consecutive_successes.get_mean()
-            self.writer.add_scalar('successes/consecutive_successes/mean', mean_con_successes, frame)
-            self.writer.add_scalar('successes/consecutive_successes/iter', mean_con_successes, epoch_num)
-            self.writer.add_scalar('successes/consecutive_successes/time', mean_con_successes, total_time)
+            # self.writer.add_scalar('successes/consecutive_successes/mean', mean_con_successes, frame)
+            # self.writer.add_scalar('successes/consecutive_successes/iter', mean_con_successes, epoch_num)
+            # self.writer.add_scalar('successes/consecutive_successes/time', mean_con_successes, total_time)
+            wandb.log({"successes/consecutive_successes": mean_con_successes})
         return
 
 
@@ -222,6 +225,17 @@ def main():
     
     # Create default directories for weights and statistics
     cfg_train['params']['config']['train_dir'] = args.output_path
+
+    # Use wandb to log the results
+    wandb.init(project="ase_amp", name=args.wandb_name)
+    wandb.config.wandb_name = args.wandb_name
+    wandb.config.cfg_env = args.cfg_env
+    wandb.config.cfg_train = args.cfg_train
+    wandb.config.checkpoint = args.checkpoint
+    wandb.config.motion_file = args.motion_file
+    wandb.config.num_envs = args.num_envs
+    wandb.config.output_path = args.output_path
+    wandb.config.task = args.task
     
     vargs = vars(args)
 

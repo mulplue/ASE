@@ -26,6 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import wandb
+
 import copy
 from datetime import datetime
 from gym import spaces
@@ -144,9 +146,10 @@ class CommonAgent(a2c_continuous.A2CAgent):
                     fps_total = curr_frames / scaled_time
                     print(f'fps step: {fps_step:.1f} fps total: {fps_total:.1f}')
 
-                self.writer.add_scalar('performance/total_fps', curr_frames / scaled_time, frame)
-                self.writer.add_scalar('performance/step_fps', curr_frames / scaled_play_time, frame)
-                self.writer.add_scalar('info/epochs', epoch_num, frame)
+                # self.writer.add_scalar('performance/total_fps', curr_frames / scaled_time, frame)
+                # self.writer.add_scalar('performance/step_fps', curr_frames / scaled_play_time, frame)
+                # self.writer.add_scalar('info/epochs', epoch_num, frame)
+                wandb.log({"performance/total_fps": curr_frames / scaled_time, "performance/step_fps": curr_frames / scaled_play_time, "info/epochs": epoch_num})
                 self._log_train_info(train_info, frame)
 
                 self.algo_observer.after_print_stats(frame, epoch_num, total_time)
@@ -156,12 +159,14 @@ class CommonAgent(a2c_continuous.A2CAgent):
                     mean_lengths = self.game_lengths.get_mean()
 
                     for i in range(self.value_size):
-                        self.writer.add_scalar('rewards{0}/frame'.format(i), mean_rewards[i], frame)
-                        self.writer.add_scalar('rewards{0}/iter'.format(i), mean_rewards[i], epoch_num)
-                        self.writer.add_scalar('rewards{0}/time'.format(i), mean_rewards[i], total_time)
+                        # self.writer.add_scalar('rewards{0}/frame'.format(i), mean_rewards[i], frame)
+                        # self.writer.add_scalar('rewards{0}/iter'.format(i), mean_rewards[i], epoch_num)
+                        # self.writer.add_scalar('rewards{0}/time'.format(i), mean_rewards[i], total_time)
+                        wandb.log({"rewards{0}/frame".format(i): mean_rewards[i], "rewards{0}/iter".format(i): mean_rewards[i], "rewards{0}/time".format(i): mean_rewards[i]})
 
-                    self.writer.add_scalar('episode_lengths/frame', mean_lengths, frame)
-                    self.writer.add_scalar('episode_lengths/iter', mean_lengths, epoch_num)
+                    # self.writer.add_scalar('episode_lengths/frame', mean_lengths, frame)
+                    # self.writer.add_scalar('episode_lengths/iter', mean_lengths, epoch_num)
+                    wandb.log({"episode_lengths/frame": mean_lengths, "episode_lengths/iter": mean_lengths})
 
                     if self.has_self_play_config:
                         self.self_play_manager.update(self)
@@ -577,16 +582,26 @@ class CommonAgent(a2c_continuous.A2CAgent):
         return
 
     def _log_train_info(self, train_info, frame):
-        self.writer.add_scalar('performance/update_time', train_info['update_time'], frame)
-        self.writer.add_scalar('performance/play_time', train_info['play_time'], frame)
-        self.writer.add_scalar('losses/a_loss', torch_ext.mean_list(train_info['actor_loss']).item(), frame)
-        self.writer.add_scalar('losses/c_loss', torch_ext.mean_list(train_info['critic_loss']).item(), frame)
+        wandb.log({"losses/a_loss": torch_ext.mean_list(train_info['actor_loss']).item(),
+                   "losses/c_loss": torch_ext.mean_list(train_info['critic_loss']).item(),
+                   "losses/bounds_loss": torch_ext.mean_list(train_info['b_loss']).item(),
+                   "losses/entropy": torch_ext.mean_list(train_info['entropy']).item(),
+                   "info/last_lr": train_info['last_lr'][-1] * train_info['lr_mul'][-1],
+                   "info/lr_mul": train_info['lr_mul'][-1],
+                   "info/e_clip": self.e_clip * train_info['lr_mul'][-1],
+                   "info/clip_frac": torch_ext.mean_list(train_info['actor_clip_frac']).item(),
+                   "info/kl": torch_ext.mean_list(train_info['kl']).item()})
+
+        # self.writer.add_scalar('performance/update_time', train_info['update_time'], frame)
+        # self.writer.add_scalar('performance/play_time', train_info['play_time'], frame)
+        # self.writer.add_scalar('losses/a_loss', torch_ext.mean_list(train_info['actor_loss']).item(), frame)
+        # self.writer.add_scalar('losses/c_loss', torch_ext.mean_list(train_info['critic_loss']).item(), frame)
         
-        self.writer.add_scalar('losses/bounds_loss', torch_ext.mean_list(train_info['b_loss']).item(), frame)
-        self.writer.add_scalar('losses/entropy', torch_ext.mean_list(train_info['entropy']).item(), frame)
-        self.writer.add_scalar('info/last_lr', train_info['last_lr'][-1] * train_info['lr_mul'][-1], frame)
-        self.writer.add_scalar('info/lr_mul', train_info['lr_mul'][-1], frame)
-        self.writer.add_scalar('info/e_clip', self.e_clip * train_info['lr_mul'][-1], frame)
-        self.writer.add_scalar('info/clip_frac', torch_ext.mean_list(train_info['actor_clip_frac']).item(), frame)
-        self.writer.add_scalar('info/kl', torch_ext.mean_list(train_info['kl']).item(), frame)
+        # self.writer.add_scalar('losses/bounds_loss', torch_ext.mean_list(train_info['b_loss']).item(), frame)
+        # self.writer.add_scalar('losses/entropy', torch_ext.mean_list(train_info['entropy']).item(), frame)
+        # self.writer.add_scalar('info/last_lr', train_info['last_lr'][-1] * train_info['lr_mul'][-1], frame)
+        # self.writer.add_scalar('info/lr_mul', train_info['lr_mul'][-1], frame)
+        # self.writer.add_scalar('info/e_clip', self.e_clip * train_info['lr_mul'][-1], frame)
+        # self.writer.add_scalar('info/clip_frac', torch_ext.mean_list(train_info['actor_clip_frac']).item(), frame)
+        # self.writer.add_scalar('info/kl', torch_ext.mean_list(train_info['kl']).item(), frame)
         return

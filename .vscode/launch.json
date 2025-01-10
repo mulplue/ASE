@@ -11,13 +11,22 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
-            // test strike
+            // ase test strike
             "args": [
                 "--task", "HumanoidStrike",
                 "--cfg_env", "ase/data/cfg/humanoid_sword_shield_strike.yaml",
                 "--cfg_train", "ase/data/cfg/train/rlg/amp_humanoid_task.yaml",
                 "--motion_file", "ase/data/motions/reallusion_sword_shield/dataset_reallusion_sword_shield.yaml"
             ]
+            // "args": [
+            //     "+exp=location",
+            //     "experiment_name=amp_sas_location_gym_3584",
+            //     "+robot=sword_and_shield",
+            //     "motion_file=data/motions/ase_motions/reallusion_sword_shield/dataset_reallusion_sword_shield.yaml",
+            //     "+backbone=isaacgym",
+            //     "+opt=wandb",
+            //     "num_envs=3584"
+            // ]
         }
     ]
 }

@@ -26,6 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import wandb
+
 from rl_games.algos_torch.running_mean_std import RunningMeanStd
 from rl_games.algos_torch import torch_ext
 from rl_games.common import a2c_common
@@ -150,6 +152,9 @@ class AMPAgent(common_agent.CommonAgent):
         mb_rewards = self.experience_buffer.tensor_dict['rewards']
         mb_amp_obs = self.experience_buffer.tensor_dict['amp_obs']
         amp_rewards = self._calc_amp_rewards(mb_amp_obs)
+
+        wandb.log({"rewards/task_rewards": torch.mean(mb_rewards), "rewards/disc_rewards": torch.mean(amp_rewards['disc_rewards'])})
+
         mb_rewards = self._combine_rewards(mb_rewards, amp_rewards)
 
         mb_advs = self.discount_values(mb_fdones, mb_values, mb_rewards, mb_next_values)
@@ -629,18 +634,27 @@ class AMPAgent(common_agent.CommonAgent):
     def _log_train_info(self, train_info, frame):
         super()._log_train_info(train_info, frame)
 
-        self.writer.add_scalar('losses/disc_loss', torch_ext.mean_list(train_info['disc_loss']).item(), frame)
+        # self.writer.add_scalar('losses/disc_loss', torch_ext.mean_list(train_info['disc_loss']).item(), frame)
 
-        self.writer.add_scalar('info/disc_agent_acc', torch_ext.mean_list(train_info['disc_agent_acc']).item(), frame)
-        self.writer.add_scalar('info/disc_demo_acc', torch_ext.mean_list(train_info['disc_demo_acc']).item(), frame)
-        self.writer.add_scalar('info/disc_agent_logit', torch_ext.mean_list(train_info['disc_agent_logit']).item(), frame)
-        self.writer.add_scalar('info/disc_demo_logit', torch_ext.mean_list(train_info['disc_demo_logit']).item(), frame)
-        self.writer.add_scalar('info/disc_grad_penalty', torch_ext.mean_list(train_info['disc_grad_penalty']).item(), frame)
-        self.writer.add_scalar('info/disc_logit_loss', torch_ext.mean_list(train_info['disc_logit_loss']).item(), frame)
+        # self.writer.add_scalar('info/disc_agent_acc', torch_ext.mean_list(train_info['disc_agent_acc']).item(), frame)
+        # self.writer.add_scalar('info/disc_demo_acc', torch_ext.mean_list(train_info['disc_demo_acc']).item(), frame)
+        # self.writer.add_scalar('info/disc_agent_logit', torch_ext.mean_list(train_info['disc_agent_logit']).item(), frame)
+        # self.writer.add_scalar('info/disc_demo_logit', torch_ext.mean_list(train_info['disc_demo_logit']).item(), frame)
+        # self.writer.add_scalar('info/disc_grad_penalty', torch_ext.mean_list(train_info['disc_grad_penalty']).item(), frame)
+        # self.writer.add_scalar('info/disc_logit_loss', torch_ext.mean_list(train_info['disc_logit_loss']).item(), frame)
+
+        wandb.log({"info/disc_agent_acc": torch_ext.mean_list(train_info['disc_agent_acc']).item(),
+                   "info/disc_demo_acc": torch_ext.mean_list(train_info['disc_demo_acc']).item(),
+                   "info/disc_agent_logit": torch_ext.mean_list(train_info['disc_agent_logit']).item(),
+                   "info/disc_demo_logit": torch_ext.mean_list(train_info['disc_demo_logit']).item(),
+                   "info/disc_grad_penalty": torch_ext.mean_list(train_info['disc_grad_penalty']).item(),
+                   "info/disc_logit_loss": torch_ext.mean_list(train_info['disc_logit_loss']).item()})
 
         disc_reward_std, disc_reward_mean = torch.std_mean(train_info['disc_rewards'])
-        self.writer.add_scalar('info/disc_reward_mean', disc_reward_mean.item(), frame)
-        self.writer.add_scalar('info/disc_reward_std', disc_reward_std.item(), frame)
+        # self.writer.add_scalar('info/disc_reward_mean', disc_reward_mean.item(), frame)
+        # self.writer.add_scalar('info/disc_reward_std', disc_reward_std.item(), frame)
+        wandb.log({"info/disc_reward_mean": disc_reward_mean.item(),
+                   "info/disc_reward_std": disc_reward_std.item()})
         return
 
     def _amp_debug(self, info):

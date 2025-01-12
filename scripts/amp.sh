@@ -1,6 +1,3 @@
-# ase given
-python ase/run.py --task HumanoidHeading --cfg_env ase/data/cfg/humanoid_sword_shield_heading.yaml --cfg_train ase/data/cfg/train/rlg/hrl_humanoid.yaml --motion_file ase/data/motions/reallusion_sword_shield/RL_Avatar_Idle_Ready_Motion.npy --llc_checkpoint [path_to_llc_checkpoint] --headless
-
 # amp test
 CUDA_VISIBLE_DEVICES=3 python ase/run.py --headless \
 --task HumanoidAMP --wandb_name amp_test \
